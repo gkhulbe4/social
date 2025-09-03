@@ -4,6 +4,7 @@ import { useWebSocket } from "@/providers/WebSocketProvider";
 import { Check } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 
 function AcceptRequest({
   currentUserEmail,
@@ -38,6 +39,9 @@ function AcceptRequest({
             user2Email: currentUserEmail,
           },
         })
+      );
+      mutate(
+        `http://localhost:3000/api/getAllFriendRequests?userEmail=${currentUserEmail}`
       );
     } else {
       toast.error("An error occurred");

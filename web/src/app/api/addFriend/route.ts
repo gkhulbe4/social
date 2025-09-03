@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/redis";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth"; // make sure you export this
+import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -76,6 +77,8 @@ export async function POST(req: Request) {
       `notifications:${email}`,
       `${session.user.email} sent you a friend request`
     );
+
+    revalidateTag("friendRequests");
 
     return NextResponse.json(
       { message: `Friend request sent to ${addressee.email}` },
