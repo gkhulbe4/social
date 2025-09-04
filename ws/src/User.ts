@@ -5,11 +5,12 @@ import { SubscriptionManager } from "./SubscriptionManager";
 export class User {
   static instance: User;
   private userEmail: string;
-  ws: WebSocket;
+  ws: WebSocket[];
 
   constructor(ws: WebSocket, userEmail: string) {
     this.userEmail = userEmail;
-    this.ws = ws;
+    this.ws = [];
+    this.ws.push(ws);
     SubscriptionManager.getInstance().subscribe(userEmail, "ADMIN-MESSAGE");
     SubscriptionManager.getInstance().subscribe(
       userEmail,
@@ -17,7 +18,7 @@ export class User {
     );
     SubscriptionManager.getInstance().subscribe(userEmail, `chat:${userEmail}`);
     this.subscribeToFriends(this.userEmail);
-    this.onListener();
+    this.onListener(ws);
   }
 
   async subscribeToFriends(userEmail: string) {
@@ -34,8 +35,8 @@ export class User {
   }
 
   // listen to publish
-  onListener() {
-    this.ws.on("message", (data) => {
+  onListener(ws: WebSocket) {
+    ws.on("message", (data) => {
       const parsedData = JSON.parse(data as unknown as string);
       console.log(parsedData);
 

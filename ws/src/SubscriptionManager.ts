@@ -50,6 +50,7 @@ export class SubscriptionManager {
     message?: string,
     createdAt?: Date
   ) {
+    console.log("i am here");
     this.publisher.publish(
       `chat:${userEmail}`,
       JSON.stringify({
@@ -71,16 +72,20 @@ export class SubscriptionManager {
       console.log(channel);
       if (channel == "ADMIN-MESSAGE") {
         users.forEach((user) => {
-          user.ws.send(
-            JSON.stringify({ type: "ADMIN-MESSAGE", message: message })
-          );
+          user.ws.forEach((socket) => {
+            socket.send(
+              JSON.stringify({ type: "ADMIN-MESSAGE", message: message })
+            );
+          });
         });
       } else if (channel.startsWith("notifications:")) {
         const userEmail = channel.split("notifications:")[1];
         const findUser = users.get(userEmail as string);
-        findUser?.ws.send(
-          JSON.stringify({ type: "notification", message: message })
-        );
+        findUser?.ws.forEach((socket) => {
+          socket.send(
+            JSON.stringify({ type: "notification", message: message })
+          );
+        });
       } else if (channel.startsWith("friend")) {
         console.log("i am in friends publish");
         const userEmail = channel.split("friend:")[1];
@@ -90,12 +95,15 @@ export class SubscriptionManager {
         const data = await res.json();
         data.allFriends.forEach((friend: { email: string }) => {
           const user = users.get(friend.email as string);
-          user?.ws.send(JSON.stringify({ type: "friend", message: message }));
+          user?.ws.forEach((socket) => {
+            socket.send(JSON.stringify({ type: "friend", message: message }));
+          });
         });
       } else if (channel.startsWith("chat")) {
         const parsedMessage = JSON.parse(message);
         const userEmail = channel.split("chat:")[1];
-        const findUser = users.get(userEmail as string);
+        const receiver = users.get(userEmail as string);
+        const sender = users.get(parsedMessage.users.from);
 
         // get conversation id
         const convoId = getConversationId(
@@ -125,17 +133,33 @@ export class SubscriptionManager {
           50
         );
 
+        //sending to sender's ws
+        sender?.ws.forEach((socket) => {
+          socket.send(
+            JSON.stringify({
+              type: "chat",
+              message: parsedMessage.message,
+              notification: parsedMessage.notification,
+              from: parsedMessage.users.from,
+              to: parsedMessage.users.to,
+              createdAt: parsedMessage.createdAt,
+            })
+          );
+        });
+
         //sending to receiver's ws
-        findUser?.ws.send(
-          JSON.stringify({
-            type: "chat",
-            message: parsedMessage.message,
-            notification: parsedMessage.notification,
-            from: parsedMessage.users.from,
-            to: parsedMessage.users.to,
-            createdAt: parsedMessage.createdAt,
-          })
-        );
+        receiver?.ws.forEach((socket) => {
+          socket.send(
+            JSON.stringify({
+              type: "chat",
+              message: parsedMessage.message,
+              notification: parsedMessage.notification,
+              from: parsedMessage.users.from,
+              to: parsedMessage.users.to,
+              createdAt: parsedMessage.createdAt,
+            })
+          );
+        });
       }
     });
   }

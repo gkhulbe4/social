@@ -15,6 +15,14 @@ wss.on("connection", (ws, request) => {
         return;
     }
     console.log(`${userEmail} connected`);
-    UserManager_1.UserManager.getInstance().addUser(ws, userEmail);
+    const users = UserManager_1.UserManager.getInstance().getAllUser();
+    if (users.has(userEmail)) {
+        const user = users.get(userEmail);
+        user?.ws.push(ws);
+        user?.onListener(ws);
+    }
+    else {
+        UserManager_1.UserManager.getInstance().addUser(ws, userEmail);
+    }
 });
 //# sourceMappingURL=index.js.map

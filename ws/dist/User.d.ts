@@ -2,9 +2,9 @@ import { WebSocket } from "ws";
 export declare class User {
     static instance: User;
     private userEmail;
-    ws: WebSocket;
+    ws: WebSocket[];
     constructor(ws: WebSocket, userEmail: string);
     subscribeToFriends(userEmail: string): Promise<void>;
-    onListener(): void;
+    onListener(ws: WebSocket): void;
 }
 //# sourceMappingURL=User.d.ts.map

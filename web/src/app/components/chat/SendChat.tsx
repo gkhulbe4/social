@@ -23,18 +23,18 @@ function SendChat({ userEmail }: { userEmail: string }) {
         },
       })
     );
-    setChats((prev) => ({
-      ...prev,
-      [userEmail]: [
-        ...(prev[userEmail] || []),
-        {
-          receiver: { email: userEmail },
-          sender: { email: session?.data?.user?.email! },
-          message,
-          createdAt: new Date(),
-        },
-      ],
-    }));
+    // setChats((prev) => ({
+    //   ...prev,
+    //   [userEmail]: [
+    //     ...(prev[userEmail] || []),
+    //     {
+    //       receiver: { email: userEmail },
+    //       sender: { email: session?.data?.user?.email! },
+    //       message,
+    //       createdAt: new Date(),
+    //     },
+    //   ],
+    // }));
     setMessage("");
   }
   // console.log(chats);

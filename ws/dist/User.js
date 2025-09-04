@@ -8,12 +8,13 @@ class User {
     ws;
     constructor(ws, userEmail) {
         this.userEmail = userEmail;
-        this.ws = ws;
+        this.ws = [];
+        this.ws.push(ws);
         SubscriptionManager_1.SubscriptionManager.getInstance().subscribe(userEmail, "ADMIN-MESSAGE");
         SubscriptionManager_1.SubscriptionManager.getInstance().subscribe(userEmail, `notifications:${userEmail}`);
         SubscriptionManager_1.SubscriptionManager.getInstance().subscribe(userEmail, `chat:${userEmail}`);
         this.subscribeToFriends(this.userEmail);
-        this.onListener();
+        this.onListener(ws);
     }
     async subscribeToFriends(userEmail) {
         const res = await fetch(`http://localhost:3000/api/getAllFriends/?userEmail=${userEmail}`);
@@ -23,8 +24,8 @@ class User {
         });
     }
     // listen to publish
-    onListener() {
-        this.ws.on("message", (data) => {
+    onListener(ws) {
+        ws.on("message", (data) => {
             const parsedData = JSON.parse(data);
             console.log(parsedData);
             if (parsedData.type === "SUBSCRIBE") {

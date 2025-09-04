@@ -59,7 +59,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 
     ws.onmessage = async (data) => {
       const message = JSON.parse(data.data as string);
-      console.log(message);
+      // console.log(message);
       if (message.type === "ADMIN-MESSAGE") {
         toast.info(`Attention: ${message.message}`);
       } else if (message.type.startsWith("notification")) {
@@ -67,7 +67,9 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       } else if (message.type.startsWith("friend")) {
         toast.info(message.message);
       } else if (message.type == "chat") {
-        toast.info(message.notification);
+        if (message.from !== session.user?.email) {
+          toast.info(message.notification);
+        }
 
         const newMsg: Message = {
           receiver: { email: message.to },
@@ -75,11 +77,16 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           message: message.message,
           createdAt: message.createdAt,
         };
-        console.log("i am here");
-        setChats((prev) => ({
-          ...prev,
-          [message.from]: [...(prev[message.from] || []), newMsg],
-        }));
+        // console.log("i am here");
+        setChats((prev) => {
+          const chatKey =
+            message.from === session.user?.email ? message.to : message.from;
+
+          return {
+            ...prev,
+            [chatKey]: [...(prev[chatKey] || []), newMsg],
+          };
+        });
 
         await sendChatToQueue(
           message.from,

@@ -3,7 +3,7 @@ import { User } from "./User";
 
 // users = {
 //     userId : {
-//         ws,
+//         ws:[],
 //         userId
 //     }
 // }
@@ -31,8 +31,17 @@ export class UserManager {
 
   onUserDisconnect(ws: WebSocket, userEmail: string) {
     ws.on("close", () => {
-      this.users.delete(userEmail);
-      console.log(`${userEmail} disconnected`);
+      const user = this.users.get(userEmail);
+      if (!user) return;
+      const userConnections = user?.ws;
+      const newConnections = userConnections?.filter((conn) => conn != ws);
+
+      if (newConnections?.length == 0) {
+        this.users.delete(userEmail);
+        console.log(`${userEmail} disconnected`);
+      } else {
+        user.ws = newConnections;
+      }
     });
   }
 

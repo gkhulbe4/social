@@ -1,5 +1,6 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { UserManager } from "./UserManager";
+import { User } from "./User";
 
 const wss = new WebSocketServer({ port: 8080 });
 
@@ -17,5 +18,12 @@ wss.on("connection", (ws: WebSocket, request) => {
   }
 
   console.log(`${userEmail} connected`);
-  UserManager.getInstance().addUser(ws, userEmail);
+  const users = UserManager.getInstance().getAllUser();
+  if (users.has(userEmail)) {
+    const user = users.get(userEmail);
+    user?.ws.push(ws);
+    user?.onListener(ws);
+  } else {
+    UserManager.getInstance().addUser(ws, userEmail);
+  }
 });
